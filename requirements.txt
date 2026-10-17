@@ -3,3 +3,4 @@ python-dotenv
 Faker
 beautifulsoup4
 soupsieve
+pytest-playwright
