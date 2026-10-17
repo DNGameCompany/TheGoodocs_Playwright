@@ -1,0 +1,5 @@
+requests
+python-dotenv
+Faker
+beautifulsoup4
+soupsieve
