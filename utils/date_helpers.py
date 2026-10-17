@@ -6,7 +6,8 @@ def parse_dt(s: str) -> datetime:
 
 
 def filter_by_date(pd: datetime, period: str) -> bool:
-    sd = datetime.now(timezone.utc)
+    current_date = datetime.now(timezone.utc)
+    pd = pd.replace(tzinfo=timezone.utc)
 
     periods = {
         "year": 365,
@@ -15,7 +16,7 @@ def filter_by_date(pd: datetime, period: str) -> bool:
     }
 
     if period in periods:
-        res = sd - timedelta(days=periods[period])
-        return res <= pd <= sd
+        res = current_date - timedelta(days=periods[period])
+        return res <= pd <= current_date
     else:
         raise ValueError(f"Не валідний період перевірки: {period}")

@@ -40,15 +40,23 @@ class AllTemplatesPage(AllTemplatesLocators, CategoryPage):
         if premium_status not in ("premium", "free"):
             raise ValueError(f"premium_status має бути 'premium' або 'free', отримано: {premium_status!r}")
 
-        templates = self.__template_card.all()
+        with self.get_current_page().expect_response(
+                lambda r: "/ajax/all-templates/load-more" in r.url and r.ok
+        ) as resp_info:
+            templates = self.get_template_card().all()
         assert templates, "Немає жодного шаблону для перевірки"
 
         wrong = []
         checked = 0
+
+
+
+
         for index, template in enumerate(templates):
             if index in self.AD_CARD_INDEXES:
                 continue
             checked += 1
+
 
             indicator_count = self.get_premium_indicator(template).count()
             match premium_status:
@@ -67,6 +75,8 @@ class AllTemplatesPage(AllTemplatesLocators, CategoryPage):
     def all_templates_sorted_by_(self, sort_name, access_token, api_key) -> bool:
         if sort_name not in ("popular", "latest"):
             raise ValueError(f"sort_name має бути 'popular' або 'latest', отримано: {sort_name!r}")
+
+        self.get_template_card().first.wait_for(state="visible", timeout=5000)
 
         templates = self.get_template_card().all()
         assert templates, "Немає жодного шаблону для перевірки"
@@ -87,7 +97,7 @@ class AllTemplatesPage(AllTemplatesLocators, CategoryPage):
         if parameter_name not in ("year", "month", "week"):
             raise ValueError(f"parameter_name має бути 'year' або 'month' або 'week', отримано: {parameter_name!r}")
 
-        # templates = self.get_template_card().all()
+        self.get_template_card().first.wait_for(state="visible", timeout=5000)
         templates_names = self.get_templates_names()
         assert templates_names, "Немає жодного шаблону для перевірки"
 
