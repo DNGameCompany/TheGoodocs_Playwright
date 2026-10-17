@@ -4,6 +4,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: playwright
     env:
         API_KEY: ${{ secrets.API_KEY }}
         GATEWAY_URL: ${{ vars.GATEWAY_URL }}
