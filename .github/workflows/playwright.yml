@@ -22,7 +22,7 @@ jobs:
     - name: Install Playwright Browsers
       run: playwright install --with-deps
     - name: Run Playwright tests
-      run: pytest -m "smoke"
+      run: pytest -m "smoke" --tracing=retain-on-failure --screenshot=only-on-failure --video=retain-on-failure --output=test-results
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
