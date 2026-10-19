@@ -4,3 +4,4 @@ Faker
 beautifulsoup4
 soupsieve
 pytest-playwright
+pytest-html
