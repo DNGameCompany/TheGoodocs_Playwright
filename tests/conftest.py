@@ -156,7 +156,7 @@ def registration_user(auth_admin) -> UserCredentials:
     Бере email з ENV, ґенерує пароль через Faker.
     Після завершення тесту автоматично видаляє створеного користувача.
     """
-    user_email = os.getenv("TEST_USER_EMAIL_REGISTRATION")
+    user_email = get_required_env("TEST_USER_EMAIL_REGISTRATION")
     user_password = fk.password(length=6)
 
     user = UserCredentials(email=user_email, password=user_password)
