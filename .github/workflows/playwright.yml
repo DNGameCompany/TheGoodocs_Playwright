@@ -10,7 +10,7 @@ jobs:
         GATEWAY_URL: ${{ vars.GATEWAY_URL }}
         ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
         ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        TEST_USER_EMAIL: ${{ vars.TEST_USER_EMAIL_REGISTRATION }}
+        TEST_USER_EMAIL_REGISTRATION: ${{ vars.TEST_USER_EMAIL_REGISTRATION }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
