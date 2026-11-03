@@ -2,9 +2,10 @@
 import os
 
 import requests
+from dotenv import load_dotenv
 from utils.get_required_env import get_required_env
 
-
+load_dotenv()
 
 GATEWAY_URL = get_required_env("GATEWAY_URL").rstrip("/")
 TIMEOUT = 30
