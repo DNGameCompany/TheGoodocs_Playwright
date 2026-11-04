@@ -185,7 +185,7 @@ def admin_credential():
         "password": get_required_env("ADMIN_PASSWORD"),
     }
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def auth_credential(auth_admin):
     return {
         "access_token": auth_admin,
@@ -193,11 +193,11 @@ def auth_credential(auth_admin):
     }
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def auth_admin(admin_credential):
     return authorization(**admin_credential)["data"]["access_token"]
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def mail_service() -> MailIMAP:
     return MailIMAP()
