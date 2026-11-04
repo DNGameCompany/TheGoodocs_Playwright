@@ -1,31 +1,65 @@
 name: Playwright Tests
 on:
   workflow_dispatch:
+
 jobs:
   test:
     runs-on: ubuntu-latest
     environment: playwright
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      checks: write          # для публікації результатів у Checks
     env:
-        API_KEY: ${{ secrets.API_KEY }}
-        GATEWAY_URL: ${{ vars.GATEWAY_URL }}
-        ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-        ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        TEST_USER_EMAIL: ${{ vars.TEST_USER_EMAIL_REGISTRATION }}
+      API_KEY: ${{ secrets.API_KEY }}
+      GATEWAY_URL: ${{ vars.GATEWAY_URL }}
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      TEST_USER_EMAIL_REGISTRATION: ${{ vars.TEST_USER_EMAIL_REGISTRATION }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-        cache: pip
-    - name: Install dependencies
-      run: pip install -r requirements.txt
-    - name: Install Playwright Browsers
-      run: playwright install --with-deps
-    - name: Run Playwright tests
-      run: pytest -m "smoke" --tracing=retain-on-failure --screenshot=only-on-failure --video=retain-on-failure --output=test-results --html=report.html
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: test-results
-        path: test-results/
-        retention-days: 30
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: playwright install --with-deps chromium   # лише те, що потрібно, швидше
+
+      - name: Run Playwright tests
+        run: >
+          pytest -m "smoke"
+          --tracing=retain-on-failure
+          --screenshot=only-on-failure
+          --video=retain-on-failure
+          --output=test-results
+          --html=report/index.html --self-contained-html
+          --junitxml=report/junit.xml
+
+      - name: Publish summary in Checks
+        if: ${{ !cancelled() }}
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: report/junit.xml
+          check_name: Playwright smoke results
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: report/
+          retention-days: 30
+
+      - name: Upload failure artifacts (trace/video/screenshots)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
+          if-no-files-found: ignore
