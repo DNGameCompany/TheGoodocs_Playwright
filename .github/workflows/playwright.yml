@@ -30,9 +30,20 @@ jobs:
       - name: Install Playwright browsers
         run: playwright install --with-deps chromium   # лише те, що потрібно, швидше
 
-      - name: Run Playwright tests
+      - name: Parallel tests
         run: >
-          pytest -m "smoke"
+          pytest -m "smoke and not serial" -n 2
+          --tracing=retain-on-failure
+          --screenshot=only-on-failure
+          --video=retain-on-failure
+          --output=test-results
+          --html=report/index.html --self-contained-html
+          --junitxml=report/junit.xml
+
+      - name: Serial tests
+        if: ${{ !cancelled() }}
+        run: >
+          pytest -m "smoke and serial"
           --tracing=retain-on-failure
           --screenshot=only-on-failure
           --video=retain-on-failure

@@ -3,7 +3,7 @@ import pytest
 
 @pytest.mark.auth
 class TestAuth:
-
+    @pytest.mark.serial
     @pytest.mark.smoke
     def test_authorisation_with_email(self, test_user, log_in_page):
         log_in_page.login(test_user.email, test_user.password)
@@ -13,6 +13,7 @@ class TestAuth:
 
         assert log_in_page.get_current_url() == expected_url
 
+    @pytest.mark.serial
     @pytest.mark.smoke
     def test_registration_with_email(self, sign_up_page, registration_user, mail_service):
         mail_service.delete_all_emails()
