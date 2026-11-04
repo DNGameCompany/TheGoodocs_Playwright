@@ -195,6 +195,9 @@ def auth_credential(auth_admin):
 
 @pytest.fixture(scope="session")
 def auth_admin(admin_credential):
+    token = os.getenv("ADMIN_TOKEN")
+    if token:
+        return token
     return authorization(**admin_credential)["data"]["access_token"]
 
 
