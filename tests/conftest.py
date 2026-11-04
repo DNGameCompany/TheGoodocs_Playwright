@@ -177,7 +177,7 @@ def registration_user(auth_admin) -> UserCredentials:
         print(f"\n[Teardown Error] Не вдалося видалити користувача {user.email}: {e}")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def admin_credential():
     return {
         "apikey": get_required_env("API_KEY"),
