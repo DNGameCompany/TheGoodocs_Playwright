@@ -1,11 +1,12 @@
 import re
 
-from playwright.sync_api import Page, Locator
+from playwright.sync_api import Page, Locator, expect
 from pages.locators.all_templates_locators import AllTemplatesLocators
 from pages.locators.category_locators import CategoryLocators
 from pages.category_page import CategoryPage
 from utils.api_requests import filter_by_template_name
 from utils.date_helpers import parse_dt, filter_by_date
+import time
 
 
 class AllTemplatesPage(AllTemplatesLocators, CategoryPage):
@@ -24,8 +25,32 @@ class AllTemplatesPage(AllTemplatesLocators, CategoryPage):
         return self.__dropdown_menu_show
 
     def click_filter_parameter(self, parameter_name: str):
-        self.get_dropdown_menu().is_visible()
-        self.__dropdown_menu_show.locator(self.PARAMETER_FILTER).filter(has_text=re.compile(rf"^\s*{re.escape(parameter_name)}\s*$")).click()
+        expect(self.get_dropdown_menu()).to_be_visible()
+        option = self.__dropdown_menu_show.locator(self.PARAMETER_FILTER).filter(
+            has_text=re.compile(rf"^\s*{re.escape(parameter_name)}\s*$")
+        )
+        # чекаємо відповідь сервера саме на клік по фільтру
+        with self.get_current_page().expect_response(
+                lambda r: "/ajax/all-templates/load-more" in r.url and r.ok
+        ):
+            option.click()
+        self.wait_for_list_stable()
+
+    def wait_for_list_stable(self, timeout_ms: int = 10000):
+        cards = self.get_template_card()
+        expect(cards.first).to_be_visible()
+        page = self.get_current_page()
+
+        deadline = time.monotonic() + timeout_ms / 1000
+        prev, same = -1, 0
+        while time.monotonic() < deadline:
+            cur = cards.count()
+            same = same + 1 if cur == prev else 0
+            if same >= 2:  # 3 однакові заміри поспіль
+                return
+            prev = cur
+            page.wait_for_timeout(300)
+        raise TimeoutError("Список карток не стабілізувався")
 
     def click_sort_parameter(self, parameter_name: str):
         self.get_dropdown_menu().is_visible()
@@ -40,17 +65,11 @@ class AllTemplatesPage(AllTemplatesLocators, CategoryPage):
         if premium_status not in ("premium", "free"):
             raise ValueError(f"premium_status має бути 'premium' або 'free', отримано: {premium_status!r}")
 
-        with self.get_current_page().expect_response(
-                lambda r: "/ajax/all-templates/load-more" in r.url and r.ok
-        ) as resp_info:
-            templates = self.get_template_card().all()
+        templates = self.get_template_card().all()
         assert templates, "Немає жодного шаблону для перевірки"
 
         wrong = []
         checked = 0
-
-
-
 
         for index, template in enumerate(templates):
             if index in self.AD_CARD_INDEXES:
@@ -121,7 +140,6 @@ class AllTemplatesPage(AllTemplatesLocators, CategoryPage):
             ok = filter_by_date(template_date, parameter_name)
             if not ok:
                 wrong.append(index)
-
         assert checked, "Усі картки виключені з перевірки"
         assert not wrong, f"Картки в неправильному діапазоні: '{parameter_name}' (індекси, з 0): {wrong}"
         return True
