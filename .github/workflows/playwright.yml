@@ -63,9 +63,8 @@ jobs:
         with:
           report_paths: report/junit-*.xml
           check_name: Playwright smoke results
-          detailed_summary: true      # таблиця по кожному тесту
-          include_passed: true        # показувати й пройдені (за замовчуванням лише падіння)
-          summary: true               # підсумок також у Summary запуску
+          detailed_summary: true
+          include_passed: true
 
       - name: Upload report
         if: ${{ !cancelled() }}
