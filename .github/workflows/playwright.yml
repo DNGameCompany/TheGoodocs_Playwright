@@ -15,7 +15,7 @@ jobs:
       GATEWAY_URL: ${{ vars.GATEWAY_URL }}
       ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
       ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-      TEST_USER_EMAIL_REGISTRATION: ${{ vars.TEST_USER_EMAIL_REAL }}
+      TEST_USER_EMAIL_REAL: ${{ vars.TEST_USER_EMAIL_REAL }}
     steps:
       - uses: actions/checkout@v4
 
