@@ -10,6 +10,7 @@ from utils.api_requests import authorization
 @pytest.mark.auth
 @pytest.mark.reset_password
 class TestResetPassword:
+    @pytest.mark.serial
     @pytest.mark.smoke
     def test_reset_password(self, log_in_page: AuthPage, mail_service, reset_password):
         reset_password_page = log_in_page.click_reset_password_link()
