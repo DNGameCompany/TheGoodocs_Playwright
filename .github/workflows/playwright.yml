@@ -44,7 +44,7 @@ jobs:
           --video=retain-on-failure
           --output=test-results
           --html=report/index.html --self-contained-html
-          --junitxml=report/junit.xml
+          --junitxml=report/junit-parallel.xml
 
       - name: Serial tests
         if: ${{ !cancelled() }}
@@ -55,14 +55,16 @@ jobs:
           --video=retain-on-failure
           --output=test-results
           --html=report/index.html --self-contained-html
-          --junitxml=report/junit.xml
+          --junitxml=report/junit-serial.xml
 
       - name: Publish summary in Checks
         if: ${{ !cancelled() }}
         uses: mikepenz/action-junit-report@v4
         with:
-          report_paths: report/junit.xml
+          report_paths: report/junit-*.xml
           check_name: Playwright smoke results
+          detailed_summary: true
+          include_passed: true
 
       - name: Upload report
         if: ${{ !cancelled() }}
