@@ -91,7 +91,7 @@ class AllTemplatesPage(AllTemplatesLocators, CategoryPage):
         return True
 
 
-    def all_templates_sorted_by_(self, sort_name, access_token, api_key) -> bool:
+    def all_templates_sorted_by_(self, sort_name, access_token) -> bool:
         if sort_name not in ("popular", "latest"):
             raise ValueError(f"sort_name має бути 'popular' або 'latest', отримано: {sort_name!r}")
 
@@ -103,16 +103,14 @@ class AllTemplatesPage(AllTemplatesLocators, CategoryPage):
         match sort_name:
             case "popular":
                 return self.is_sorted_by_popular(template_names_list=self.get_templates_names(),
-                                                 access_token=access_token,
-                                                 api_key=api_key)
+                                                 access_token=access_token)
             case "latest":
                 return self.is_sorted_by_latest(template_names_list=self.get_templates_names(),
-                                                access_token=access_token,
-                                                api_key=api_key)
+                                                access_token=access_token)
         return False
 
 
-    def check_date_filter_by_last_(self, parameter_name: str, access_token: str, api_key: str) -> bool:
+    def check_date_filter_by_last_(self, parameter_name: str, access_token: str) -> bool:
         if parameter_name not in ("year", "month", "week"):
             raise ValueError(f"parameter_name має бути 'year' або 'month' або 'week', отримано: {parameter_name!r}")
 
@@ -128,8 +126,7 @@ class AllTemplatesPage(AllTemplatesLocators, CategoryPage):
             checked += 1
             response = filter_by_template_name(
                 template_name=template_name,
-                access_token=access_token,
-                apikey=api_key
+                access_token=access_token
             )
             items = response["data"]["items"]["data"]
             match = next((i for i in items if i["name"] == template_name), None)

@@ -64,13 +64,12 @@ class CategoryPage(BasePage, CategoryLocators):
         expect(headings.first).to_have_text(first_name, timeout=10_000)
 
     @staticmethod
-    def is_sorted_by_latest(template_names_list, access_token, api_key) -> bool:
+    def is_sorted_by_latest(template_names_list, access_token) -> bool:
         last_date = None
         for name in template_names_list:
             response = filter_by_template_name(
                 template_name=name,
-                access_token=access_token,
-                apikey=api_key,
+                access_token=access_token
             )
             items = response["data"]["items"]["data"]
             match = next((i for i in items if i["name"] == name), None)
@@ -85,14 +84,13 @@ class CategoryPage(BasePage, CategoryLocators):
         return True
 
     @staticmethod
-    def is_sorted_by_popular(template_names_list, access_token, api_key) -> bool:
+    def is_sorted_by_popular(template_names_list, access_token) -> bool:
         groups = {0: [], 1: []}  # 0 = free, 1 = premium
 
         for name in template_names_list:
             response = filter_by_template_name(
                 template_name=name,
-                access_token=access_token,
-                apikey=api_key,
+                access_token=access_token
             )
             items = response["data"]["items"]["data"]
             match = next((i for i in items if i["name"] == name), None)

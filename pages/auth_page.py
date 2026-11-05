@@ -1,6 +1,9 @@
 from pages.base_page import BasePage
 from playwright.sync_api import Page
 
+from pages.reset_password_page import ResetPasswordPage
+from pages.personal_account_page import PersonalAccountPage
+
 
 class AuthPage(BasePage):
     def __init__(self, page: Page):
@@ -8,6 +11,7 @@ class AuthPage(BasePage):
 
         # Загальні елементи
         self._login_with_email_button = page.get_by_role("link", name="Continue with email")
+        self._restore_password_link = page.get_by_text("Restore password").first
 
         # Контейнери форм для ізоляції локаторів
         self._login_form = page.locator("#form-login")
@@ -27,6 +31,12 @@ class AuthPage(BasePage):
         if self._login_with_email_button.is_visible():
             self._login_with_email_button.click()
 
+    def click_reset_password_link(self) -> ResetPasswordPage:
+        if self._restore_password_link.is_visible():
+            self._restore_password_link.click()
+            self.wait_for_url("**/personal/forgot-password/")
+            return ResetPasswordPage(self.get_current_page())
+
     # --- Методи Авторизації ---
     def fill_login_email(self, email: str) -> None:
         self._login_email_field.fill(email)
@@ -37,11 +47,13 @@ class AuthPage(BasePage):
     def click_log_in(self) -> None:
         self._log_in_button.click()
 
-    def login(self, email: str, password: str) -> None:
+    def login(self, email: str, password: str) -> PersonalAccountPage:
         self.click_login_with_email_button()
         self.fill_login_email(email)
         self.fill_login_password(password)
         self.click_log_in()
+
+        return PersonalAccountPage(self.get_current_page())
 
     # --- Методи Реєстрації ---
     def fill_reg_email(self, email: str) -> None:

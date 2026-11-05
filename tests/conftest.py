@@ -2,7 +2,6 @@ import os
 from dataclasses import dataclass
 import pytest
 from playwright.sync_api import Page, BrowserContext
-from faker import Faker
 
 
 from pages.category_page import CategoryPage
@@ -12,8 +11,8 @@ from pages.all_templates_page import AllTemplatesPage
 from utils.get_required_env import get_required_env
 from utils.api_requests import authorization, create_user, delete_user, delete_user_by_email
 from utils.mail_imap import MailIMAP
+from utils.fake_user_data import fake
 
-fk = Faker()
 
 
 @dataclass
@@ -123,15 +122,35 @@ def template_page_old_design(page:Page) -> TemplatePage:
     return tp
 
 
+@pytest.fixture
+def reset_password(auth_credential):
+    user = UserCredentials(email=get_required_env("TEST_USER_EMAIL_REAL"),
+                           password=fake.password(length=6))
+
+    create_user(auth_credential["access_token"],
+                user.email,
+                user.password)
+    yield user
+    try:
+        delete_user_by_email(
+            access_token=auth_credential["access_token"],
+            email=user.email
+        )
+        print(f"\n[Teardown] Користувача {user.email} успішно видалено.")
+    except Exception as e:
+        print(f"\n[Teardown Error] Не вдалося видалити користувача {user.email}: {e}")
+
+
+
+
 # --- Користувачі та допоміжні фікстури ---
 @pytest.fixture
-def test_user(auth_admin):
-    test_email = fk.email(safe=True, domain="kdteam.test")
+def test_user(auth_credential) -> UserCredentials:
+    test_email = fake.email(safe=True, domain="kdteam.test")
     print(test_email)
-    test_pass = fk.password(length=6)
+    test_pass = fake.password(length=6)
     test_user = create_user(
-        auth_admin,
-        apikey=get_required_env("API_KEY"),
+        auth_credential["access_token"],
         email=test_email,
         password=test_pass
     )
@@ -143,21 +162,20 @@ def test_user(auth_admin):
     )
     yield user_data
     resp = delete_user(
-        auth_admin,
-        apikey=get_required_env("API_KEY"),
+        auth_credential["access_token"],
         user_id=test_user_id
     )
     print(resp)
 
 
 @pytest.fixture
-def registration_user(auth_admin) -> UserCredentials:
+def registration_user(auth_credential) -> UserCredentials:
     """
     Бере email з ENV, ґенерує пароль через Faker.
     Після завершення тесту автоматично видаляє створеного користувача.
     """
-    user_email = get_required_env("TEST_USER_EMAIL_REGISTRATION")
-    user_password = fk.password(length=6)
+    user_email = get_required_env("TEST_USER_EMAIL_REAL")
+    user_password = fake.password(length=6)
 
     user = UserCredentials(email=user_email, password=user_password)
 
@@ -168,8 +186,7 @@ def registration_user(auth_admin) -> UserCredentials:
     try:
         # Якщо у вас є ID або ви можете отримати його за email/видалити за email:
         delete_user_by_email(
-            access_token=auth_admin,
-            apikey=get_required_env("API_KEY"),
+            access_token=auth_credential["access_token"],
             email=user.email
         )
         print(f"\n[Teardown] Користувача {user.email} успішно видалено.")
@@ -180,7 +197,6 @@ def registration_user(auth_admin) -> UserCredentials:
 @pytest.fixture(scope="session")
 def admin_credential():
     return {
-        "apikey": get_required_env("API_KEY"),
         "email": get_required_env("ADMIN_EMAIL"),
         "password": get_required_env("ADMIN_PASSWORD"),
     }
@@ -188,8 +204,7 @@ def admin_credential():
 @pytest.fixture(scope="session")
 def auth_credential(auth_admin):
     return {
-        "access_token": auth_admin,
-        "api_key":  get_required_env("API_KEY")
+        "access_token": auth_admin
     }
 
 
@@ -201,6 +216,6 @@ def auth_admin(admin_credential):
     return authorization(**admin_credential)["data"]["access_token"]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def mail_service() -> MailIMAP:
     return MailIMAP()

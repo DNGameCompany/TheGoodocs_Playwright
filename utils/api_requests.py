@@ -9,6 +9,7 @@ load_dotenv()
 
 GATEWAY_URL = get_required_env("GATEWAY_URL").rstrip("/")
 TIMEOUT = 30
+API_KEY = get_required_env("API_KEY")
 
 
 def _headers(apikey: str, access_token: str | None = None) -> dict:
@@ -28,20 +29,20 @@ def _check(response: requests.Response) -> requests.Response:
     return response
 
 
-def authorization(apikey: str, email: str, password: str) -> dict:
+def authorization(email: str, password: str) -> dict:
     response = requests.post(
         f"{GATEWAY_URL}/v1/user/login",
-        headers=_headers(apikey),
+        headers=_headers(API_KEY),
         json={"email": email, "password": password},
         timeout=TIMEOUT,
     )
     return _check(response).json()
 
 
-def create_user(access_token: str, apikey: str, email: str, password: str) -> dict:
+def create_user(access_token: str, email: str, password: str) -> dict:
     response = requests.post(
         f"{GATEWAY_URL}/v1/user",
-        headers=_headers(apikey, access_token),
+        headers=_headers(API_KEY, access_token),
         json={
             "name": "Test User (autotest)",
             "email": email,
@@ -53,19 +54,19 @@ def create_user(access_token: str, apikey: str, email: str, password: str) -> di
     return _check(response).json()
 
 
-def delete_user(access_token: str, apikey: str, user_id: int) -> dict:
+def delete_user(access_token: str, user_id: int) -> dict:
     response = requests.delete(
         f"{GATEWAY_URL}/v1/user/{user_id}",
-        headers=_headers(apikey, access_token),
+        headers=_headers(API_KEY, access_token),
         timeout=TIMEOUT,
     )
     return _check(response).json()
 
-def get_user_id_by_email(access_token: str, apikey: str, email: str) -> int | None:
+def get_user_id_by_email(access_token: str, email: str) -> int | None:
     """Знаходить ID користувача за його email через ендпоінт /v1/user/filter."""
     response = requests.post(
         f"{GATEWAY_URL}/v1/user/filter",
-        headers=_headers(apikey, access_token),
+        headers=_headers(API_KEY, access_token),
         json={"email": email},
         timeout=TIMEOUT,
     )
@@ -79,17 +80,17 @@ def get_user_id_by_email(access_token: str, apikey: str, email: str) -> int | No
     return None
 
 
-def delete_user_by_email(access_token: str, apikey: str, email: str) -> dict | None:
+def delete_user_by_email(access_token: str, email: str) -> dict | None:
     """Знаходить ID користувача за email і видаляє його."""
-    user_id = get_user_id_by_email(access_token, apikey, email)
+    user_id = get_user_id_by_email(access_token, email)
     if user_id:
-        return delete_user(access_token, apikey, user_id)
+        return delete_user(access_token, user_id)
     return None
 
-def filter_by_template_name(template_name: str, access_token: str, apikey: str) -> dict | None:
+def filter_by_template_name(template_name: str, access_token: str) -> dict | None:
     response = requests.post(
         f"{GATEWAY_URL}/v1/templates/filter",
-        headers=_headers(apikey, access_token),
+        headers=_headers(API_KEY, access_token),
         json={
                 "search": f"{template_name}"
             },

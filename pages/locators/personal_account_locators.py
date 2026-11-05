@@ -1,0 +1,2 @@
+class PersonalAccountLocators:
+    pass
