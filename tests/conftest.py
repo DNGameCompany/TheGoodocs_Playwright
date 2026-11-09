@@ -167,13 +167,39 @@ def test_user(auth_credential) -> UserCredentials:
     )
     print(resp)
 
+@pytest.fixture
+def test_user_data() -> UserCredentials:
+    user = UserCredentials(email=fake.email(safe=True, domain="kdteam.test"), password=fake.password(length=6))
+    return user
 
 @pytest.fixture
-def registration_user(auth_credential) -> UserCredentials:
-    """
-    Бере email з ENV, ґенерує пароль через Faker.
-    Після завершення тесту автоматично видаляє створеного користувача.
-    """
+def unverified_user(sign_up_page, test_user_data, auth_credential):
+    sign_up_page.registration(test_user_data.email, test_user_data.password)
+    yield test_user_data
+    resp = delete_user_by_email(auth_credential["access_token"], test_user_data.email)
+    print(resp)
+
+@pytest.fixture
+def cleanup_registered_user(auth_credential):
+    """Після тесту видаляє за email користувачів, яких тест міг випадково створити."""
+    emails: list[str] = []
+
+    yield emails.append          # тест викликає cleanup_registered_user(email)
+    print(emails)
+    for email in emails:
+        try:
+            delete_user_by_email(
+                access_token=auth_credential["access_token"],
+                email=email,
+            )
+
+        except Exception:
+            # користувача не було створено: це нормальний (очікуваний) результат
+            pass
+
+
+@pytest.fixture
+def registration_user_real_data(auth_credential) -> UserCredentials:
     user_email = get_required_env("TEST_USER_EMAIL_REAL")
     user_password = fake.password(length=6)
 

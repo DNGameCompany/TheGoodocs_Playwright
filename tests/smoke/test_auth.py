@@ -5,20 +5,20 @@ import pytest
 class TestAuth:
     @pytest.mark.serial
     @pytest.mark.smoke
+    @pytest.mark.login
+    @pytest.mark.positive
     def test_authorisation_with_email(self, test_user, log_in_page):
         log_in_page.login(test_user.email, test_user.password)
-
-        expected_url = "https://thegoodocs.com/personal/"
-        log_in_page.wait_for_url(expected_url)
-
-        assert log_in_page.get_current_url() == expected_url
+        log_in_page.user_logged_in_success()
 
     @pytest.mark.serial
     @pytest.mark.smoke
-    def test_registration_with_email(self, sign_up_page, registration_user, mail_service):
+    @pytest.mark.register
+    @pytest.mark.positive
+    def test_registration_with_email(self, sign_up_page, registration_user_real_data, mail_service):
         mail_service.delete_all_emails()
 
-        sign_up_page.registration(registration_user.email, registration_user.password)
+        sign_up_page.registration(registration_user_real_data.email, registration_user_real_data.password)
 
         activation_url = mail_service.verification_link(timeout_seconds=30)
 
