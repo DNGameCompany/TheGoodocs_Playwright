@@ -221,25 +221,27 @@ def registration_user_real_data(auth_credential) -> UserCredentials:
 
 @pytest.fixture
 def not_verified_user(auth_credential, test_user_data):
-    user_email = test_user_data.email
-    user_password = test_user_data.password
+    user = UserCredentials(
+        email=test_user_data.email,
+        password=test_user_data.password
+    )
 
-    user = register_user(
+    response = register_user(
         access_token=auth_credential["access_token"],
-        email=user_email,
-        password=user_password,
+        email=user.email,
+        password=user.password,
         verification=True
     )
-    yield
-    user_id = user["data"]["id"]
+    yield user
+    user_id = response["data"]["id"]
     try:
         delete_user(
             auth_credential["access_token"],
             user_id=user_id
         )
-        print(f"\n[Teardown] Користувача {user_email}({user_id}) успішно видалено.")
+        print(f"\n[Teardown] Користувача {user.email}({user_id}) успішно видалено.")
     except Exception as e:
-        print(f"\n[Teardown Error] Не вдалося видалити користувача {user_email}({user_id}): {e}")
+        print(f"\n[Teardown Error] Не вдалося видалити користувача {user.email}({user_id}): {e}")
 
 
 @pytest.fixture(scope="session")
