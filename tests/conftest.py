@@ -9,7 +9,7 @@ from pages.auth_page import AuthPage
 from pages.template_page import TemplatePage
 from pages.all_templates_page import AllTemplatesPage
 from utils.get_required_env import get_required_env
-from utils.api_requests import authorization, create_user, delete_user, delete_user_by_email
+from utils.api_requests import authorization, create_user, delete_user, delete_user_by_email, register_user
 from utils.mail_imap import MailIMAP
 from utils.fake_user_data import fake
 
@@ -218,6 +218,28 @@ def registration_user_real_data(auth_credential) -> UserCredentials:
         print(f"\n[Teardown] Користувача {user.email} успішно видалено.")
     except Exception as e:
         print(f"\n[Teardown Error] Не вдалося видалити користувача {user.email}: {e}")
+
+@pytest.fixture
+def not_verified_user(auth_credential, test_user_data):
+    user_email = test_user_data.email
+    user_password = test_user_data.password
+
+    user = register_user(
+        access_token=auth_credential["access_token"],
+        email=user_email,
+        password=user_password,
+        verification=True
+    )
+    yield
+    user_id = user["data"]["id"]
+    try:
+        delete_user(
+            auth_credential["access_token"],
+            user_id=user_id
+        )
+        print(f"\n[Teardown] Користувача {user_email}({user_id}) успішно видалено.")
+    except Exception as e:
+        print(f"\n[Teardown Error] Не вдалося видалити користувача {user_email}({user_id}): {e}")
 
 
 @pytest.fixture(scope="session")

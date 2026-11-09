@@ -52,6 +52,10 @@ class TestAuth:
         log_in_page.login(email=test_user.email, password=test_user_data.password)
         log_in_page.login_error_alert_is_visible("Email or password is incorrect")
 
+    @pytest.mark.negative
+    def test_login_user_not_verified(self, log_in_page, test_user_data):
+        log_in_page.login(email=test_user_data.)
+
 
 
 
