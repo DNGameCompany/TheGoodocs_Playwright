@@ -4,6 +4,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from utils.get_required_env import get_required_env
+from utils.fake_user_data import fake
 
 load_dotenv()
 
@@ -52,6 +53,26 @@ def create_user(access_token: str, email: str, password: str) -> dict:
         timeout=TIMEOUT,
     )
     return _check(response).json()
+
+def register_user(access_token: str, email: str, password: str, verification: bool = False):
+    json = {
+        "name": "Test Playwright",
+        "email": email,
+        "password": password
+    }
+
+    if verification:
+        json["verification"] = verification
+        json["verification_link"] = fake.url()
+
+    response = requests.post(
+        url=f"{GATEWAY_URL}/v1/user/register-user",
+        headers= _headers(API_KEY, access_token),
+        json=json,
+        timeout=TIMEOUT,
+    )
+    return _check(response).json()
+
 
 
 def delete_user(access_token: str, user_id: int) -> dict:
