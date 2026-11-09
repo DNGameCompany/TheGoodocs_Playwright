@@ -3,6 +3,7 @@ from pickle import FALSE
 import pytest
 from utils.fake_user_data import fake, fake_ua
 from test_data.emails import EMPTY_EMAIL_CASES, INVALID_EMAIL_CASES
+from test_data.errors.auth_errors import AuthErrors
 
 
 @pytest.mark.auth
@@ -17,7 +18,7 @@ class TestAuth:
             case "":
                 log_in_page.email_field_is_required()
             case _ if empty_email.isspace():
-                log_in_page.login_error_alert_is_visible("The email field is required.")
+                log_in_page.login_error_alert_is_visible(AuthErrors.EMAIL_REQUIRED)
 
 
     @pytest.mark.negative
@@ -29,7 +30,7 @@ class TestAuth:
     @pytest.mark.parametrize("test_email", INVALID_EMAIL_CASES)
     def test_login_validate_field_email(self, log_in_page, test_email, cleanup_registered_user):
         log_in_page.login(email=test_email, password=fake.password(), negative=True)
-        log_in_page.login_error_alert_is_visible("The email must be a valid")
+        log_in_page.login_error_alert_is_visible(AuthErrors.EMAIL_VALID)
 
 
     @pytest.mark.positive
@@ -37,20 +38,16 @@ class TestAuth:
         log_in_page.login(email=test_user.email, password=test_user.password)
         log_in_page.user_logged_in_success()
 
-    @pytest.mark.negative
-    def test_login_email_not_verified(self, log_in_page, unverified_user):
-        log_in_page.login(email=unverified_user.email, password=unverified_user.password)
-        log_in_page.login_error_alert_is_visible("You need to verify your email address to access account.")
 
     @pytest.mark.negative
     def test_login_email_not_registered(self, log_in_page, test_user_data):
         log_in_page.login(email=test_user_data.email, password=test_user_data.password)
-        log_in_page.login_error_alert_is_visible("Email or password is incorrect")
+        log_in_page.login_error_alert_is_visible(AuthErrors.EMAIL_PASSWORD_INCORRECT)
 
     @pytest.mark.negative
     def test_login_invalid_password(self, log_in_page, test_user, test_user_data):
         log_in_page.login(email=test_user.email, password=test_user_data.password)
-        log_in_page.login_error_alert_is_visible("Email or password is incorrect")
+        log_in_page.login_error_alert_is_visible(AuthErrors.EMAIL_PASSWORD_INCORRECT)
 
     @pytest.mark.negative
     def test_login_user_not_verified(self, log_in_page, not_verified_user):
@@ -59,4 +56,4 @@ class TestAuth:
             password=not_verified_user.password,
             negative=True
         )
-        log_in_page.login_error_alert_is_visible("You need to verify your email address to access account.")
+        log_in_page.login_error_alert_is_visible(AuthErrors.EMAIL_VERIFY)

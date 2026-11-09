@@ -145,7 +145,7 @@ def reset_password(auth_credential):
 
 # --- Користувачі та допоміжні фікстури ---
 @pytest.fixture
-def test_user(auth_credential) -> UserCredentials:
+def test_user(auth_credential):
     test_email = fake.email(safe=True, domain="kdteam.test")
     print(test_email)
     test_pass = fake.password(length=6)
@@ -171,13 +171,6 @@ def test_user(auth_credential) -> UserCredentials:
 def test_user_data() -> UserCredentials:
     user = UserCredentials(email=fake.email(safe=True, domain="kdteam.test"), password=fake.password(length=6))
     return user
-
-@pytest.fixture
-def unverified_user(sign_up_page, test_user_data, auth_credential):
-    sign_up_page.registration(test_user_data.email, test_user_data.password)
-    yield test_user_data
-    resp = delete_user_by_email(auth_credential["access_token"], test_user_data.email)
-    print(resp)
 
 @pytest.fixture
 def cleanup_registered_user(auth_credential):
