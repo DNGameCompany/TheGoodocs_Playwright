@@ -1,4 +1,5 @@
-from playwright.sync_api import Page, Locator
+from playwright.sync_api import Page, Locator, expect
+import re
 
 from pages.base_page import BasePage
 
@@ -33,10 +34,17 @@ class ResetPasswordPage(BasePage):
 
 
 
-    def request_reset_password_link(self, email:str):
+    def request_reset_password_link(self, email: str):
         self.fill_email_field(email=email)
-        self.click_send_button()
+        with self.get_current_page().expect_response(
+            lambda r: "/ajax/send-reset-password-link/" in r.url and r.ok
+        ):
+            self.click_send_button()
 
-    def set_new_password(self, new_password:str):
+    def set_new_password(self, new_password: str):
         self.fill_new_password_field(new_password)
-        self.click_send_button()
+        with self.get_current_page().expect_response(
+            lambda r: "/ajax/reset-password/" in r.url and r.ok
+        ):
+            self.click_send_button()
+        expect(self.get_current_page()).to_have_url(re.compile(r"/personal/login/"))

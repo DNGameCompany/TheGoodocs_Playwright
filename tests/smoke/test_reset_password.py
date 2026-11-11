@@ -1,8 +1,6 @@
 import pytest
-from playwright.async_api import expect
 
 from pages.auth_page import AuthPage
-from tests.conftest import UserCredentials
 from utils.fake_user_data import fake
 from utils.api_requests import authorization
 
@@ -16,7 +14,6 @@ class TestResetPassword:
         reset_password_page = log_in_page.click_reset_password_link()
 
         mail_service.delete_all_emails()
-
         reset_password_page.request_reset_password_link(reset_password.email)
 
         reset_password_link = mail_service.reset_password_link(timeout_seconds=60)
@@ -27,9 +24,8 @@ class TestResetPassword:
         new_password = fake.password()
         reset_password_page.set_new_password(new_password=new_password)
 
-        user_new_password = UserCredentials(email=reset_password.email, password=new_password)
-
-        assert authorization(user_new_password.email, user_new_password.password)["success"] is True
+        response = authorization(email=reset_password.email, password=new_password)
+        assert response["success"] is True
 
 
     @pytest.mark.smoke
@@ -39,10 +35,8 @@ class TestResetPassword:
         personal_account_page.reset_password(new_password)
 
         personal_account_page.reset_password_alert_is_visible()
-
-        user_new_password = UserCredentials(email=test_user.email, password=new_password)
-
-        assert authorization(user_new_password.email, user_new_password.password)["success"] is True
+        response = authorization(test_user.email, new_password)["success"]
+        assert response is True
 
 
 
