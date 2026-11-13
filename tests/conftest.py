@@ -8,6 +8,7 @@ from pages.category_page import CategoryPage
 from pages.auth_page import AuthPage
 from pages.template_page import TemplatePage
 from pages.all_templates_page import AllTemplatesPage
+from pages.memberships_page import MembershipsPage
 from utils.get_required_env import get_required_env
 from utils.api_requests import authorization, create_user, delete_user, delete_user_by_email, register_user
 from utils.mail_imap import MailIMAP
@@ -120,6 +121,12 @@ def template_page_old_design(page:Page) -> TemplatePage:
     tp = TemplatePage(page)
     tp.navigate_to("https://thegoodocs.com/schedules/weekly-hourly-planner-schedule-template.php")
     return tp
+
+@pytest.fixture
+def memberships_page(page:Page):
+    mp = MembershipsPage(page)
+    mp.navigate_to("https://thegoodocs.com/membership/")
+    return mp
 
 
 @pytest.fixture
