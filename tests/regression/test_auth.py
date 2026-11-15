@@ -2,7 +2,7 @@ from pickle import FALSE
 
 import pytest
 from utils.fake_user_data import fake, fake_ua
-from test_data.emails import EMPTY_EMAIL_CASES, INVALID_EMAIL_CASES
+from test_data.emails import EMPTY_EMAIL_CASES, LOGIN_INVALID_EMAIL_CASES
 from test_data.errors.auth_errors import AuthErrors
 
 
@@ -24,10 +24,10 @@ class TestAuth:
     @pytest.mark.negative
     def test_login_required_field_password(self, log_in_page, test_user_data):
         log_in_page.login(email=test_user_data.email, password="")
-        log_in_page.email_field_is_required()
+        log_in_page.password_field_is_required()
 
     @pytest.mark.negative
-    @pytest.mark.parametrize("test_email", INVALID_EMAIL_CASES)
+    @pytest.mark.parametrize("test_email", LOGIN_INVALID_EMAIL_CASES)
     def test_login_validate_field_email(self, log_in_page, test_email, cleanup_registered_user):
         log_in_page.login(email=test_email, password=fake.password(), negative=True)
         log_in_page.login_error_alert_is_visible(AuthErrors.EMAIL_VALID)

@@ -65,9 +65,11 @@ class AuthPage(AuthLocators, BasePage):
 
     def email_field_is_required(self):
         expect(self._login_email_field).to_be_focused()
-        validate_message = self._login_email_field.evaluate(self.VALIDATE_MESSAGE)
+        assert self._login_email_field.evaluate(self.VALIDATE_MESSAGE) is True
 
-        assert validate_message == "Please fill in this field."
+    def password_field_is_required(self):
+        expect(self._login_pass_field).to_be_focused()
+        assert self._login_pass_field.evaluate(self.VALIDATE_MESSAGE) is True
 
 
     def get_alert_error_text_login(self, error_text: str) -> Locator:
