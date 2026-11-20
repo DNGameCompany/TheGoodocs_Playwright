@@ -2,7 +2,7 @@ from pickle import FALSE
 
 import pytest
 from utils.fake_user_data import fake, fake_ua
-from test_data.emails import EMPTY_EMAIL_CASES, LOGIN_INVALID_EMAIL_CASES
+from test_data.emails_negative_cases import EMPTY_EMAIL_CASES, LOGIN_INVALID_EMAIL_CASES
 from test_data.errors.auth_errors import AuthErrors
 
 
