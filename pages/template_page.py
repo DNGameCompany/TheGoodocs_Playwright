@@ -1,3 +1,5 @@
+import re
+
 from pages.base_page import BasePage
 from playwright.sync_api import Page, Download
 from pages.locators.template_locators import TemplateLocators
@@ -14,11 +16,20 @@ class TemplatePage(BasePage):
     def choose_platform_tab_new(self, platform_name: str):
         self._edit_container.locator(TemplateLocators.PLATFORM_TAB).filter(has_text=platform_name).click()
 
+    def get_actual_color(self) -> str:
+        colors_bar = self._edit_container.locator(TemplateLocators.COLORS_BAR)
+        style = colors_bar.locator(TemplateLocators.ACTIVE_COLOR).get_attribute("style")          # "background: #6f8467"
+        match = re.search(r"#([0-9a-fA-F]{6})", style)
+        assert match, f"Не знайшов hex у style: {style}"
+        return match.group(1).upper()
+
     def click_download_button_new(self):
         self._edit_container.locator(TemplateLocators.DOWNLOAD_BUTTON).click()
 
-    def download_template_new_design(self, platform_name: str = "Microsoft Word", timeout_ms: int = 30000) -> Download:
+    def download_template_new_design(self, platform_name: str = "Microsoft Word", color=None, timeout_ms: int = 30000) -> Download:
         self.choose_platform_tab_new(platform_name)
+        if color:
+            active_color = self.get_actual_color
 
         with self.get_current_page().expect_download(timeout=timeout_ms) as download_info:
             self.click_download_button_new()

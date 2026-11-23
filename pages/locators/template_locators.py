@@ -10,3 +10,5 @@ class TemplateLocators:
     SIZES_MODAL = "#sizes-modal"
     MODAL_DOWNLOAD_BUTTON = ".js-download-button"
     COPY_IN_BROWSER_BUTTON_OLD = ".template__load-button"
+    COLORS_BAR = ".ai-switcher__colors"
+    ACTIVE_COLOR = ".ai-switcher__color.js-ai-color.active"

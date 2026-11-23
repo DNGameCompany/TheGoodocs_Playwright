@@ -23,6 +23,15 @@ class UserCredentials:
     id: int | str | None = None
 
 
+ENVIRONMENT = get_required_env("ENVIRONMENT")
+stage_credential = {
+    "login" : get_required_env("STAGE_LOGIN"),
+    "password" : get_required_env("STAGE_PASSWORD")
+}
+
+domain = "https://thegoodocs.com" if ENVIRONMENT == "prod" else f"https://{stage_credential["login"]}:{stage_credential["password"]}@stagedoc19.kdteamukraine.com/"
+
+
 # --- Повне блокування реклами (Google Vignette, AdSense, Analytics) ---
 @pytest.fixture(autouse=True)
 def block_google_ads_completely(request, context: BrowserContext, page: Page):
@@ -86,27 +95,27 @@ def block_google_ads_completely(request, context: BrowserContext, page: Page):
 @pytest.fixture
 def category_page(page: Page) -> CategoryPage:
     cp = CategoryPage(page)
-    cp.navigate_to("https://thegoodocs.com/freebies/book-templates/")
+    cp.navigate_to(f"{domain}/freebies/book-templates/")
     return cp
 
 
 @pytest.fixture
 def log_in_page(page: Page) -> AuthPage:
     ap = AuthPage(page)
-    ap.navigate_to("https://thegoodocs.com/personal/login/")
+    ap.navigate_to(f"{domain}/personal/login/")
     return ap
 
 
 @pytest.fixture
 def sign_up_page(page: Page) -> AuthPage:
     ap = AuthPage(page)
-    ap.navigate_to("https://thegoodocs.com/personal/login/?sign-up=true")
+    ap.navigate_to(f"{domain}/personal/login/?sign-up=true")
     return ap
 
 @pytest.fixture
 def all_templates_page(page: Page) -> AllTemplatesPage:
     atp = AllTemplatesPage(page)
-    atp.navigate_to("https://thegoodocs.com/all-templates/")
+    atp.navigate_to(f"{domain}/all-templates/")
     return atp
 
 
@@ -114,6 +123,12 @@ def all_templates_page(page: Page) -> AllTemplatesPage:
 def template_page_new_design(page:Page) -> TemplatePage:
     tp = TemplatePage(page)
     tp.navigate_to("https://thegoodocs.com/book-templates/stylish-novel-book-free-google-docs-template.php")
+    return tp
+
+@pytest.fixture
+def template_page_new_design_with_color(page:Page) -> TemplatePage:
+    tp = TemplatePage(page)
+    tp.navigate_to("https://thegoodocs.com/invoice-templates/simple-invoice-template-example-and-blank.php")
     return tp
 
 @pytest.fixture
