@@ -5,6 +5,8 @@ from pages.reset_password_page import ResetPasswordPage
 from pages.personal_account_page import PersonalAccountPage
 from pages.locators.auth_locators import AuthLocators
 
+DOMAIN =
+
 
 class AuthPage(AuthLocators, BasePage):
     def __init__(self, page: Page):

@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 from utils.get_required_env import get_required_env
 from utils.fake_user_data import fake
 
-load_dotenv()
 
-GATEWAY_URL = get_required_env("GATEWAY_URL").rstrip("/")
+ENVIRONMENT = get_required_env("ENVIRONMENT")
+GATEWAY_URL = get_required_env("GATEWAY_URL").rstrip("/") if ENVIRONMENT == "prod" else get_required_env("STAGE_GATEWAY_URL").rstrip("/")
 TIMEOUT = 30
 API_KEY = get_required_env("API_KEY")
 
