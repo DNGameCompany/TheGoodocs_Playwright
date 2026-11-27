@@ -88,64 +88,64 @@ def block_google_ads_completely(request, context: BrowserContext, page: Page):
 @pytest.fixture
 def category_page(page: Page) -> CategoryPage:
     cp = CategoryPage(page)
-    cp.navigate_to(f"https://{DOMAIN}/freebies/book-templates/")
+    cp.navigate_to(f"{DOMAIN}/freebies/book-templates/")
     return cp
 
 @pytest.fixture
 def holiday_page(page: Page) -> HolidayCategoryPage:
     hp = HolidayCategoryPage(page)
-    hp.navigate_to(f"https://{DOMAIN}/holidays/christmas/")
+    hp.navigate_to(f"{DOMAIN}/holidays/christmas/")
     return hp
 
 @pytest.fixture
 def group_page(page: Page) -> GroupPage:
     gp = GroupPage(page)
-    gp.navigate_to(f"https://{DOMAIN}/business-templates/")
+    gp.navigate_to(f"{DOMAIN}/business-templates/")
     return gp
 
 
 @pytest.fixture
 def log_in_page(page: Page) -> AuthPage:
     ap = AuthPage(page)
-    ap.navigate_to(f"https://{DOMAIN}/personal/login/")
+    ap.navigate_to(f"{DOMAIN}/personal/login/")
     return ap
 
 
 @pytest.fixture
 def sign_up_page(page: Page) -> AuthPage:
     ap = AuthPage(page)
-    ap.navigate_to(f"https://{DOMAIN}/personal/login/?sign-up=true")
+    ap.navigate_to(f"{DOMAIN}/personal/login/?sign-up=true")
     return ap
 
 @pytest.fixture
 def all_templates_page(page: Page) -> AllTemplatesPage:
     atp = AllTemplatesPage(page)
-    atp.navigate_to(f"https://{DOMAIN}/all-templates/")
+    atp.navigate_to(f"{DOMAIN}/all-templates/")
     return atp
 
 
 @pytest.fixture
 def template_page_new_design(page:Page) -> TemplatePage:
     tp = TemplatePage(page)
-    tp.navigate_to(f"https://{DOMAIN}/book-templates/stylish-novel-book-free-google-docs-template.php")
+    tp.navigate_to(f"{DOMAIN}/book-templates/stylish-novel-book-free-google-docs-template.php")
     return tp
 
 @pytest.fixture
 def template_page_new_design_with_color(page:Page) -> TemplatePage:
     tp = TemplatePage(page)
-    tp.navigate_to(f"https://{DOMAIN}/invoice-templates/roofing-invoice-template-example-and-blank.php")
+    tp.navigate_to(f"{DOMAIN}/invoice-templates/roofing-invoice-template-example-and-blank.php")
     return tp
 
 @pytest.fixture
 def template_page_old_design(page:Page) -> TemplatePage:
     tp = TemplatePage(page)
-    tp.navigate_to(f"https://{DOMAIN}/newspaper-templates/new-york-times-newspaper-template.php")
+    tp.navigate_to(f"{DOMAIN}/newspaper-templates/new-york-times-newspaper-template.php")
     return tp
 
 @pytest.fixture
 def memberships_page(page:Page):
     mp = MembershipsPage(page)
-    mp.navigate_to(f"https://{DOMAIN}/membership/")
+    mp.navigate_to(f"{DOMAIN}/membership/")
     return mp
 
 
