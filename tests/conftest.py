@@ -9,11 +9,13 @@ from pages.auth_page import AuthPage
 from pages.template_page import TemplatePage
 from pages.all_templates_page import AllTemplatesPage
 from pages.memberships_page import MembershipsPage
+from pages.holiday_category_page import HolidayCategoryPage
+from pages.group_page import GroupPage
 from utils.get_required_env import get_required_env
 from utils.api_requests import authorization, create_user, delete_user, delete_user_by_email, register_user
 from utils.mail_imap import MailIMAP
 from utils.fake_user_data import fake
-
+from utils.environment_manager import DOMAIN
 
 
 @dataclass
@@ -21,9 +23,6 @@ class UserCredentials:
     email: str
     password: str
     id: int | str | None = None
-
-
-
 
 
 # --- Повне блокування реклами (Google Vignette, AdSense, Analytics) ---
@@ -89,27 +88,39 @@ def block_google_ads_completely(request, context: BrowserContext, page: Page):
 @pytest.fixture
 def category_page(page: Page) -> CategoryPage:
     cp = CategoryPage(page)
-    cp.navigate_to(f"{DOMAIN}/freebies/book-templates/")
+    cp.navigate_to(f"https://{DOMAIN}/freebies/book-templates/")
     return cp
+
+@pytest.fixture
+def holiday_page(page: Page) -> HolidayCategoryPage:
+    hp = HolidayCategoryPage(page)
+    hp.navigate_to(f"https://{DOMAIN}/holidays/christmas/")
+    return hp
+
+@pytest.fixture
+def group_page(page: Page) -> GroupPage:
+    gp = GroupPage(page)
+    gp.navigate_to(f"https://{DOMAIN}/business-templates/")
+    return gp
 
 
 @pytest.fixture
 def log_in_page(page: Page) -> AuthPage:
     ap = AuthPage(page)
-    ap.navigate_to(f"{DOMAIN}/personal/login/")
+    ap.navigate_to(f"https://{DOMAIN}/personal/login/")
     return ap
 
 
 @pytest.fixture
 def sign_up_page(page: Page) -> AuthPage:
     ap = AuthPage(page)
-    ap.navigate_to(f"{DOMAIN}/personal/login/?sign-up=true")
+    ap.navigate_to(f"https://{DOMAIN}/personal/login/?sign-up=true")
     return ap
 
 @pytest.fixture
 def all_templates_page(page: Page) -> AllTemplatesPage:
     atp = AllTemplatesPage(page)
-    atp.navigate_to(f"{DOMAIN}/all-templates/")
+    atp.navigate_to(f"https://{DOMAIN}/all-templates/")
     return atp
 
 
@@ -134,7 +145,7 @@ def template_page_old_design(page:Page) -> TemplatePage:
 @pytest.fixture
 def memberships_page(page:Page):
     mp = MembershipsPage(page)
-    mp.navigate_to("https://{DOMAIN}/membership/")
+    mp.navigate_to(f"https://{DOMAIN}/membership/")
     return mp
 
 
