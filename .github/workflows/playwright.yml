@@ -1,21 +1,98 @@
 name: Playwright Tests
+
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Середовище'
+        required: true
+        type: choice
+        options:
+          - stage
+          - prod
+      testGroup:
+        description: 'Група тестів (маркер pytest)'
+        required: false
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - regression
+          - all
+      testClassOrMethod:
+        description: 'Конкретний тест відносно playwright_autotests/ (напр. tests/smoke/test_all_templates.py::TestAllTemplates::test_date)'
+        required: false
+        default: ''
+      keyword:
+        description: 'Фільтр за назвою (pytest -k), напр. "date or sort"'
+        required: false
+        default: ''
+      browser:
+        description: 'Браузер'
+        required: false
+        default: chromium
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+      workers:
+        description: 'Кількість паралельних воркерів'
+        required: false
+        default: '2'
+        type: choice
+        options: ['1', '2', '3', '4']
+      runSerial:
+        description: 'Запускати окремо serial-тести'
+        required: false
+        default: true
+        type: boolean
+      tracing:
+        description: 'Trace'
+        required: false
+        default: retain-on-failure
+        type: choice
+        options: [retain-on-failure, 'on', 'off']
+      debug:
+        description: 'Детальний вивід (-vv -s)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: playwright-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   test:
     runs-on: ubuntu-latest
     environment: playwright
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: read
-      checks: write          # для публікації результатів у Checks
+      checks: write
     env:
+      ENVIRONMENT: ${{ inputs.environment }}
+
       API_KEY: ${{ secrets.API_KEY }}
       GATEWAY_URL: ${{ vars.GATEWAY_URL }}
       ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
       ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
       TEST_USER_EMAIL_REAL: ${{ vars.TEST_USER_EMAIL_REAL }}
+      STAGE_LOGIN: ${{ secrets.STAGE_LOGIN }}
+      STAGE_PASSWORD: ${{ secrets.STAGE_PASSWORD }}
+      PROD_DOMAIN: ${{ vars.PROD_DOMAIN }}
+      STAGE_DOMAIN: ${{ vars.STAGE_DOMAIN }}
+      STAGE_GATEWAY_URL: ${{ vars.STAGE_GATEWAY_URL }}
+
+      # inputs передаються через env, а не підставляються в shell напряму
+      IN_GROUP: ${{ inputs.testGroup }}
+      IN_TARGET: ${{ inputs.testClassOrMethod }}
+      IN_KEYWORD: ${{ inputs.keyword }}
+      IN_BROWSER: ${{ inputs.browser }}
+      IN_WORKERS: ${{ inputs.workers }}
+      IN_TRACING: ${{ inputs.tracing }}
+      IN_DEBUG: ${{ inputs.debug }}
     steps:
       - uses: actions/checkout@v4
 
@@ -23,6 +100,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
+          cache-dependency-path: playwright_autotests/requirements.txt
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -34,35 +112,74 @@ jobs:
           echo "ADMIN_TOKEN=$TOKEN" >> "$GITHUB_ENV"
 
       - name: Install Playwright browsers
-        run: playwright install --with-deps chromium   # лише те, що потрібно, швидше
+        run: playwright install --with-deps "$IN_BROWSER"
+
+      - name: Build pytest arguments
+        id: args
+        run: |
+          COMMON="--browser=$IN_BROWSER --tracing=$IN_TRACING --screenshot=only-on-failure --video=retain-on-failure"
+          if [ "$IN_DEBUG" = "true" ]; then COMMON="$COMMON -vv -s"; fi
+
+          # конкретний тест має пріоритет над групою
+          SELECT=""
+          MARK=""
+          if [ -n "$IN_TARGET" ]; then
+            SELECT="$IN_TARGET"
+          elif [ "$IN_GROUP" != "all" ]; then
+            MARK="$IN_GROUP"
+          fi
+
+          {
+            echo "common=$COMMON"
+            echo "select=$SELECT"
+            echo "mark=$MARK"
+            echo "keyword=$IN_KEYWORD"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Parallel tests
-        run: >
-          pytest -m "smoke and not serial" -n 2
-          --tracing=retain-on-failure
-          --screenshot=only-on-failure
-          --video=retain-on-failure
-          --output=test-results
-          --html=report/index.html --self-contained-html
-          --junitxml=report/junit-parallel.xml
+        env:
+          COMMON: ${{ steps.args.outputs.common }}
+          SELECT: ${{ steps.args.outputs.select }}
+          MARK: ${{ steps.args.outputs.mark }}
+          KEYWORD: ${{ steps.args.outputs.keyword }}
+        run: |
+          EXPR="not serial"
+          if [ -n "$MARK" ]; then EXPR="$MARK and not serial"; fi
+          ARGS=(-m "$EXPR" -n "$IN_WORKERS" $COMMON
+                --output=test-results/parallel
+                --html=report/parallel.html --self-contained-html
+                --junitxml=report/junit-parallel.xml)
+          if [ -n "$KEYWORD" ]; then ARGS+=(-k "$KEYWORD"); fi
+          if [ -n "$SELECT" ]; then ARGS+=("$SELECT"); fi
+          echo "pytest ${ARGS[*]}"
+          pytest "${ARGS[@]}"
 
       - name: Serial tests
-        if: ${{ !cancelled() }}
-        run: >
-          pytest -m "smoke and serial"
-          --tracing=retain-on-failure
-          --screenshot=only-on-failure
-          --video=retain-on-failure
-          --output=test-results
-          --html=report/index.html --self-contained-html
-          --junitxml=report/junit-serial.xml
+        if: ${{ !cancelled() && inputs.runSerial }}
+        env:
+          COMMON: ${{ steps.args.outputs.common }}
+          SELECT: ${{ steps.args.outputs.select }}
+          MARK: ${{ steps.args.outputs.mark }}
+          KEYWORD: ${{ steps.args.outputs.keyword }}
+        run: |
+          EXPR="serial"
+          if [ -n "$MARK" ]; then EXPR="$MARK and serial"; fi
+          ARGS=(-m "$EXPR" $COMMON
+                --output=test-results/serial
+                --html=report/serial.html --self-contained-html
+                --junitxml=report/junit-serial.xml)
+          if [ -n "$KEYWORD" ]; then ARGS+=(-k "$KEYWORD"); fi
+          if [ -n "$SELECT" ]; then ARGS+=("$SELECT"); fi
+          echo "pytest ${ARGS[*]}"
+          # код 5 = жодного тесту не зібрано, це не помилка
+          pytest "${ARGS[@]}" || [ $? -eq 5 ]
 
       - name: Publish summary in Checks
         if: ${{ !cancelled() }}
         uses: mikepenz/action-junit-report@v4
         with:
-          report_paths: report/junit-*.xml
-          check_name: Playwright smoke results
+          report_paths: playwright_autotests/report/junit-*.xml
+          check_name: Playwright results (${{ inputs.environment }}, ${{ inputs.testGroup }}, ${{ inputs.browser }})
           detailed_summary: true
           include_passed: true
 
@@ -71,14 +188,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: html-report
-          path: report/
+          path: playwright_autotests/report/
           retention-days: 30
+          if-no-files-found: ignore
 
       - name: Upload failure artifacts (trace/video/screenshots)
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: test-results/
+          path: playwright_autotests/test-results/
           retention-days: 30
           if-no-files-found: ignore
